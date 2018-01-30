@@ -5,3 +5,7 @@ Raspberry PI measures every n minutes, uploads to S3 bucket
 AWS Lambda function is triggered every n minutes
 * checks the timestamp of the last temperature reading and alerts if it is too old
 * checks the temperature itself and alerts if it is too low
+
+
+Todos
+* create bucket, add two IAS users, one for the reader and another for the lambda func
