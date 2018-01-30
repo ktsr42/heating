@@ -1,5 +1,6 @@
 import argparse
 import configparser
+import datetime
 import json
 import os
 import pathlib
@@ -21,7 +22,7 @@ def read_current_temperature(srcfile):
         data = tf.read()
     temperature_reading_line = data.split('\n')[1]
     (_, tag, temperature_reading) = temperature_reading_line.partition('t=')
-    if tag <> 't=':
+    if tag != 't=':
         raise Exception('Could not parse temperature sensor file')
     return (time.time(), int(temperature_reading) / 1000)
 
@@ -51,11 +52,12 @@ def write_reading(targetdir, prefix, reading):
 def create_aws_message(srcdir, prefix):
     sdir = pathlib.Path(srcdir)
     allreadings_t = [e.read_text().strip().split() for e in sdir.iterdir() if e.is_file() and e.name[:len(prefix)] == prefix]
-    return json.dumps(sorted((int(ts), r) for ts, r in allreadings_t, key = lamba x: x[0]))
+    kf = lambda x: x[0]
+    return json.dumps(sorted(((int(ts), r) for ts, r in allreadings_t), key = kf))
 
 def aws_upload(params, data, suffix=".json"):
     fname = "{}/{}{:%Y%m%dT%H%m%S}{}".format(params.path, params.prefix, datetime.datetime.utcnow(), suffix)
-    config = awsconfig.Config(region=params.region)
+    config = awsconfig.Config(region_name=params.region)
     s3 = boto3.resource(service_name = 's3', aws_access_key_id = params.key_id, aws_secret_access_key = params.secret_key, config=config)
     s3obj = s3.Object(params.bucket, fname)
     s3obj.put(Body=data.encode())
@@ -100,9 +102,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-        
-    
-
-
-        
