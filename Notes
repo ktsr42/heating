@@ -7,5 +7,11 @@ AWS Lambda function is triggered every n minutes
 * checks the temperature itself and alerts if it is too low
 
 
-Todos
-* create bucket, add two IAS users, one for the reader and another for the lambda func
+Cloudformation
+* (done) create data S3 bucket
+* (done) create IAM Role with lambda execution rights and access to the S3 bucket
+* (done) create Lambda function
+* (done) create event (trigger) for lambda - bucket update
+* create user for pi push, download key
+* check if the log group name in cloudwatch can be controlled somehow
+* create lambda alias for published lambda (nice to have)
