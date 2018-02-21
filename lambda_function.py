@@ -7,6 +7,7 @@ import boto3
 print('Loading function')
 
 s3 = boto3.client('s3')
+sns = boto3.client('sns')
 
 
 def lambda_handler(event, context):
@@ -18,6 +19,7 @@ def lambda_handler(event, context):
     try:
         response = s3.get_object(Bucket=bucket, Key=key)
         print("CONTENT TYPE: " + response['ContentType'])
+        sns.publish(PhoneNumber='+15515802081', Message='AWS Lambda saw a new upload: ' + key)
         return response['ContentType']
     except Exception as e:
         print(e)
