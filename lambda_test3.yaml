@@ -11,6 +11,10 @@ Parameters:
     Description: Name for the IAM role assigned to the lambda
     Type: String
     Default: ktsr42.lambda_role.heating
+  PublishingUserName:
+    Description: Name for the IAM user that will be publishing readings to the S3 bucket
+    Type: String
+    Default: ktsr42heatingPublisher
 Resources:
   bucket:
     Type: AWS::S3::Bucket
@@ -47,6 +51,19 @@ Resources:
         S3Key: code/nx.zip
       MemorySize: 128
       Timeout: 3
+  PublishingUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref PublishingUserName
+      Policies:
+      - PolicyName: S3PublishingPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 's3:PutObject'
+              Resource: "arn:aws:s3:::*"      
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
