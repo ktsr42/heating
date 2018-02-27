@@ -51,6 +51,23 @@ Resources:
         S3Key: code/nx.zip
       MemorySize: 128
       Timeout: 3
+  StatusCheckEvent:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: ktsr42.event.heating_check
+      ScheduleExpression: rate(2 minutes)
+      Targets:
+        -
+          Arn:
+            !GetAtt BucketWatcher.Arn
+          Id: HeatingScheduledEvent
+  StatusCheckPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BucketWatcher
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt StatusCheckEvent.Arn
   PublishingUser:
     Type: AWS::IAM::User
     Properties:
