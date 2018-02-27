@@ -55,7 +55,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: ktsr42.event.heating_check
-      ScheduleExpression: rate(2 minutes)
+      ScheduleExpression: rate(4 hours)
       Targets:
         -
           Arn:
