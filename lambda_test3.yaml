@@ -51,6 +51,9 @@ Resources:
         S3Key: code/nx.zip
       MemorySize: 128
       Timeout: 3
+      Environment:
+        Variables:
+          CONFIG_BUCKET: !Ref BucketName
   StatusCheckEvent:
     Type: AWS::Events::Rule
     Properties:

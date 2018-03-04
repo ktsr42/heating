@@ -1,0 +1,6 @@
+{
+    "minimum_temperature":3,
+    "repeat_alert_hours":3,
+    "phonenumber":"+15515802081",
+    "max_delay": 15
+}
