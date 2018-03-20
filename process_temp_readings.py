@@ -58,17 +58,16 @@ class Status():
         args = [float(values.get(k, 0)) for k in ('temperature_reading', 'last_reading_timestamp', 'last_alert_timestamp')]
         return Status(*args)
 
-                 
-def write_readings(xenv, bucket, readings):
-    now = time.time()
+def split_by_date(readings):
     datemaps = dict()
     for r in readings:
-        r['received'] = now
         rd = datetime.date.fromtimestamp(r['timestamp'])
-        l = datemaps.get(rd, [])
-        l.append(r)
-        datemaps[rd] = l
+        rl = datemaps.get(rd, [])
+        rl.append(r)
+        datemaps[rd] = rl
+    return datemaps
 
+def write_readings(xenv, bucket, datemaps):
     for dt in datemaps.keys():
         fname = dt.strftime('allreadings/day%Y%m%d.json')
         try:
@@ -78,6 +77,7 @@ def write_readings(xenv, bucket, readings):
         datereadings.extend(datemaps[dt])
         sortedreadings = sorted(datereadings, key = lambda x:x['timestamp'])
         xenv.s3.put_object(Bucket = bucket, Key=fname, Body = json.dumps(sortedreadings).encode())
+                 
 
 def consolidate_readings(readings):
     assert len(readings) > 0
@@ -89,7 +89,13 @@ def consolidate_readings(readings):
     return [sorted_readings[i] for i in unique_indices]
 
 def send_alert(xenv, msg):
-    xenv.get_sns_client().publish(Phonenumber=xenv.config.phonenumber, Message=msg)
+    now = time.time()
+    if now > xenv.last_status.last_alert_ts + 3600 * xenv.config.repeat_alert_hours:
+        finalmsg = datetime.datetime.fromtimestamp(now).strftime("%Y.%m.%d %H:%M:%S UTC: ") + msg
+        print("Sending alert '{}'".format(finalmsg))
+        xenv.get_sns_client().publish(Phonenumber=xenv.config.phonenumber, Message=finalmsg)
+    else:
+        print("Not sending alert " + msg)
     
 def process_temperature_reading(xenv, records):
     latest_reading = dict(timestamp = 0)
@@ -97,12 +103,26 @@ def process_temperature_reading(xenv, records):
     now = time.time()
     for rec in records:
         if rec.get('eventSource', '') != 'aws:s3':
-            print("Unknown event record: " + json.dumps(record, indent=2))
+            print("Unknown event record: " + json.dumps(rec, indent=2))
             continue
         bucket = rec['s3']['bucket']['name']
         key = urllib.parse.unquote_plus(rec['s3']['object']['key'])
-        obj = xenv.s3.get_object(Bucket = bucket, Key = key)
-        readings = [dict(timestamp = float(d['timestamp']), temperature = float(d['temperature'])) for d in json.load(obj['Body'])]
+        try:
+            obj = xenv.s3.get_object(Bucket = bucket, Key = key)
+        except botocore.errorfactory.NoSuchKey:
+            print('The event object references an invalid key: ' + key)
+            continue
+        except botocore.errorfactory.NoSuchBucket:
+            print('The event object references an invalid bucket: ' + bucket)
+            continue
+        if obj['ContentLength'] > 0:
+            readings = json.load(obj['Body'])
+        else:
+            print('The file in the event is empty.')
+            continue
+        
+        for d in readings:
+            d['received'] = now
         all_readings.extend(readings)
 
     if len(all_readings) == 0:
@@ -110,31 +130,32 @@ def process_temperature_reading(xenv, records):
         return Status(0,0,now)
 
     cons_readings = consolidate_readings(all_readings)
-    write_readings(xenv, bucket, cons_readings)
+    write_readings(xenv, bucket, split_by_date(cons_readings))
         
     latest_reading = cons_readings[-1]
 
-    temperature,timestamp = [latest_reading[k] for k in ('temperature','timestamp')]
-    if temperature < xenv.config.minimum_temperature:
-        if timestamp > last_status.last_alert_ts + 3600 * xenv.config.repeat_alert_hours:
-            ts = datetime.datetime.fromtimestamp(timestamp)
-            msg = "The latest temperature reading of {} (as of {%Y.%m.%d %H:%M:%S}) has fallen below the threshold of {}".format(temperature, ts, config['minimum_temperature'])
-            send_alert(xenv, msg)
-            return Status(temperature, timestamp, now)
+    temperature, timestamp, received = [latest_reading[k] for k in ('temperature','timestamp', 'received')]
+    if temperature < xenv.config.minimum_temperature and received == now:
+        ts = datetime.datetime.fromtimestamp(timestamp)
+        msg = "The latest temperature reading of {} (as of {:%Y.%m.%d %H:%M:%S}) has fallen below the threshold of {}".format(temperature, ts, xenv.config.minimum_temperature)
+        send_alert(xenv, msg)
+        return Status(temperature, timestamp, now)
     delay = now - timestamp
-    if xenv.config.max_delay < delay:
+    print("max_delay {}, delay {}".format(xenv.config.max_delay * 60, delay))
+    if xenv.config.max_delay * 60 < delay:
         send_alert(xenv, "Warning, received a delayed temperature reading. Delay is {}".format(datetime.timedelta(seconds=int(delay))))
         return Status(temperature, timestamp, now)
     
-    return Status(temperature, timestamp, last_status.last_alert_ts)
+    return Status(temperature, timestamp, xenv.last_status.last_alert_ts)
 
 
 def process_scheduled_event(xenv, event):
     if xenv.last_status.last_reading_ts == 0:
+        # no alerts if we have never see a reading
         return xenv.last_status
     now = time.time()
     delay = now - xenv.last_status.last_reading_ts
-    if xenv.config.max_delay < delay:
+    if xenv.config.max_delay * 60 < delay:
         send_alert(xenv, "Failed to receive temperature readings for {}".format(datetime.timedelta(seconds=int(delay))))
         return Status(xenv.last_status.temp_reading, xenv.last_status.last_reading_ts, now)
     return xenv.last_status
@@ -154,7 +175,7 @@ def process_events(xenv, event, context):
     else:
         send_alert(xenv, "Lambda function received an unexpected event.")
         print(json.dumps(event, indent=2))
-        new_status = Status(last_status.temp_reading, last_status.last_reading_ts, time.time())
+        new_status = Status(xenv.last_status.temp_reading, xenv.last_status.last_reading_ts, time.time())
     xenv.s3.put_object(Bucket = xenv.lambda_bucket, Key = LambdaStatus, Body = new_status.create_json().encode())
 
 
