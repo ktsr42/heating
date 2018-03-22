@@ -84,15 +84,15 @@ def main():
     print("Current temperature is {}".format(reading))
     
     # write locally
-    write_reading(args.local_history, args.local_file_prefix, args.max_readings, reading)
+    write_reading(params.local_history, params.local_file_prefix, params.max_readings, reading)
     
     # create aws s3 object contents
     print("Create AWS file")
-    aws_msg = create_aws_message(args.local_history, args.local_file_prefix)
+    aws_msg = create_aws_message(params.local_history, params.local_file_prefix)
     
     # upload to s3
     print("Uploading to S3")
-    aws_upload(args.aws_params, aws_msg)
+    aws_upload(params.aws_params, aws_msg)
     print("Data uploaded successfully, exiting.")
 
 if __name__ == '__main__':

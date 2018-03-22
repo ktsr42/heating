@@ -26,8 +26,8 @@ import urllib.parse
 import boto3
 import botocore.errorfactory
 
-ConfigFile = 'lambda_internal/config.json'
-LambdaStatus = 'lambda_internal/status.json'
+ConfigFile = 'lambda_internal/receiver_config.json'
+LambdaStatus = 'lambda_internal/receiver_status.json'
 
 ConfigKeys = dict(minimum_temperature = float, repeat_alert_hours = int, phonenumber = str, max_delay = lambda v: int(v) * 60)
 
