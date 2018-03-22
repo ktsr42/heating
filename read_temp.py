@@ -11,11 +11,6 @@ import botocore.config as awsconfig
 import boto3
 
 
-#TemperatureSensorFile="/sys/bus/w1/devices/<serial>/w1_slave"
-#History="temperature_history"
-#ReadingFilePrefix="pipe_temperature."
-#MaxReadings = 100
-
 AwsParameters = ('region', 'key_file', 'bucket', 'path', 'prefix')
 
 def read_current_temperature(srcfile):
@@ -96,7 +91,7 @@ def main():
     aws_msg = create_aws_message(args.local_history, args.local_file_prefix)
     
     # upload to s3
-    print("Uploading to aWs S3")
+    print("Uploading to S3")
     aws_upload(args.aws_params, aws_msg)
     print("Data uploaded successfully, exiting.")
 
