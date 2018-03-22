@@ -141,7 +141,6 @@ def process_temperature_reading(xenv, records):
         send_alert(xenv, msg)
         return Status(temperature, timestamp, now)
     delay = now - timestamp
-    print("max_delay {}, delay {}".format(xenv.config.max_delay * 60, delay))
     if xenv.config.max_delay * 60 < delay:
         send_alert(xenv, "Warning, received a delayed temperature reading. Delay is {}".format(datetime.timedelta(seconds=int(delay))))
         return Status(temperature, timestamp, now)

@@ -15,3 +15,4 @@ Cloudformation
 * create user for pi push, download key
 * check if the log group name in cloudwatch can be controlled somehow
 * create lambda alias for published lambda (nice to have)
+* Assign dead letter queue to lambda: SNS topic, subscribe via SMS
