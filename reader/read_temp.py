@@ -2,10 +2,13 @@ import argparse
 import configparser
 import datetime
 import json
+import logging
+import logging.handlers
 import os
 import pathlib
 import sys
 import time
+import traceback
 
 import botocore.config as awsconfig
 import boto3
@@ -67,6 +70,8 @@ def read_config(fname):
     args.local_history = sect_input['HistoryDir']
     args.local_file_prefix = sect_input['FilePrefix']
     args.max_readings = int(sect_input['MaxReadings'])
+    args.loglevel = sect_input['LogLevel']
+    args.Logfiles = sect_input['Logfiles']
     aws_params = argparse.Namespace(key_id = None, secret_key = None, **{k:config['AWS'][k] for k in AwsParameters})
     keyfile = json.load(open(aws_params.key_file))
     aws_params.key_id = keyfile['AccessKey']['AccessKeyId']
@@ -76,24 +81,34 @@ def read_config(fname):
     
 def main():
     # read config file
+    global logger
     params = read_config(sys.argv[1])
-    
-    # read temperature
-    print("Reading the current temperature...")
-    reading = read_current_temperature(params.sensorfile)
-    print("Current temperature is {}".format(reading))
-    
-    # write locally
-    write_reading(params.local_history, params.local_file_prefix, params.max_readings, reading)
-    
-    # create aws s3 object contents
-    print("Create AWS file")
-    aws_msg = create_aws_message(params.local_history, params.local_file_prefix)
-    
-    # upload to s3
-    print("Uploading to S3")
-    aws_upload(params.aws_params, aws_msg)
-    print("Data uploaded successfully, exiting.")
+    logHandler = logging.handlers.TimedRotatingFileHandler(params.Logfiles, when='midnight', backupCount=7)
+    logging.basicConfig(level=getattr(logging, params.loglevel.upper()),
+                        style='{',
+                        format="{asctime} {levelname} {message}",
+                        handlers = [logHandler])
 
+    try:
+        # read temperature
+        logging.info("Reading the current temperature...")
+        reading = read_current_temperature(params.sensorfile)
+        logging.info("Current temperature is {}".format(reading))
+
+        # write locally
+        write_reading(params.local_history, params.local_file_prefix, params.max_readings, reading)
+
+        # create aws s3 object contents
+        logging.info("Create AWS file")
+        aws_msg = create_aws_message(params.local_history, params.local_file_prefix)
+
+        # upload to s3
+        logging.info("Uploading to S3")
+        aws_upload(params.aws_params, aws_msg)
+        logging.info("Data uploaded successfully, exiting.")
+    except:
+        logging.critical(traceback.format_exc())
+
+# FIXME: throttle boto3 retries for s3 gets
 if __name__ == '__main__':
     main()
