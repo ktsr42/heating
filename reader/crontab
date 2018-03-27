@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+
+# min hour day month dayofweek cmd
+*/10 *     *   *     *         /usr/bin/python3 ~/releases/prod/read_temp.py ~/releases/prod/read_temp_config.ini >> ~/logs/stdout.log 2>&1
