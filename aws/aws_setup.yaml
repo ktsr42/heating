@@ -9,7 +9,6 @@ Parameters:
   BucketName:
     Description: S3 Bucket name
     Type: String
-    Default: "${CommonPrefix}.heating.s3"
   CodeBucketName:
     Description: S3 Bucket where to find the zip file with the lambda code
     Type: String
@@ -47,7 +46,7 @@ Resources:
       Description: Processes the newly received temperature reading(s) and sends a SMS alert if necessary.
       Handler: process_temp_readings.process_events
       Role: !GetAtt LambdaExecutionRole.Arn
-      FunctionName: "${CommonPrefix}_heating_lambda"
+      FunctionName: !Sub "${CommonPrefix}_heating_lambda"
       Runtime: python3.6
       Code:
         S3Bucket: !Ref CodeBucketName
@@ -60,7 +59,7 @@ Resources:
   StatusCheckEvent:
     Type: AWS::Events::Rule
     Properties:
-      Name: "${CommonPrefix}_heating_check"
+      Name: !Sub "${CommonPrefix}_heating_check"
       ScheduleExpression: rate(4 hours)
       Targets:
         -
@@ -77,7 +76,7 @@ Resources:
   PublishingUser:
     Type: AWS::IAM::User
     Properties:
-      UserName: "${CommonPrefix}_heating_publisher"
+      UserName: !Sub "${CommonPrefix}_heating_publisher"
       Policies:
       - PolicyName: S3PublishingPolicy
         PolicyDocument:
@@ -90,7 +89,7 @@ Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: "${CommonPrefix}.heating.lambda_role.heating"
+      RoleName: !Sub "${CommonPrefix}.heating.lambda_role.heating"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
