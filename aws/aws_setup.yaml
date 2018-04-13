@@ -44,7 +44,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Description: Processes the newly received temperature reading(s) and sends a SMS alert if necessary.
-      Handler: process_temp_readings.process_events
+      Handler: process_temp_readings.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
       FunctionName: !Sub "${CommonPrefix}_heating_lambda"
       Runtime: python3.6

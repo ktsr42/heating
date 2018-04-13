@@ -19,7 +19,7 @@ dist-reader: temp_reader-$(REL).tar.gz
 temp_reader-$(REL).tar.gz: reader/*
 	rm -rf .dist
 	mkdir .dist
-	rsync -rv --exclude "*~" --exclude __pycache__ reader/read_temp.py reader/crontab keys/access_key.json reader/read_temp_config.ini .dist/
+	rsync -rv --exclude "*~" --exclude __pycache__ reader/read_temp.py reader/crontab keys/publisher_key.json reader/read_temp_config.ini .dist/
 	tar cz --transform="s/\.dist/temp_reader-$(REL)/" -f $@ .dist
 
 dist-lambda:

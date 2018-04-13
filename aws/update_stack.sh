@@ -14,6 +14,7 @@ Stackname="${PREFIX}MonitorHeating"
 Sensorfile=/home/klaas/Projects/heating/testdata/sensor
 ReaderUser=tsensor
 AWSRegion=us-east-1
+BucketName=$PREFIX.heating.s3
 
 # make sure the $ZIPFILE is up to date
 make
@@ -29,7 +30,7 @@ then
     aws --profile $PROFILE cloudformation update-stack \
 	--stack-name $Stackname \
 	--template-body file://aws_setup.yaml \
-	--parameters ParameterKey=CommonPrefix,ParameterValue=$PREFIX ParameterKey=BucketName,ParameterValue=$PREFIX.heating.s3 \
+	--parameters ParameterKey=CommonPrefix,ParameterValue=$PREFIX ParameterKey=BucketName,ParameterValue=$BucketName \
 	--capabilities CAPABILITY_NAMED_IAM
 
     aws --profile $PROFILE cloudformation wait stack-update-complete --stack-name $Stackname
@@ -38,12 +39,12 @@ else
     aws --profile $PROFILE cloudformation create-stack \
 	--stack-name $Stackname \
 	--template-body file://aws_setup.yaml \
-	--parameters ParameterKey=CommonPrefix,ParameterValue=$PREFIX ParameterKey=BucketName,ParameterValue=$PREFIX.heating.s3 \
+	--parameters ParameterKey=CommonPrefix,ParameterValue=$PREFIX ParameterKey=BucketName,ParameterValue=$BucketName \
 	--capabilities CAPABILITY_NAMED_IAM
 
     aws --profile $PROFILE cloudformation wait stack-create-complete --stack-name $Stackname
     
-    aws --profile $PROFILE iam create-access-key --user-name ${PREFIX}_heating_publisher > ../keys/${PREFIX}_heating_publisher_key.json
+    aws --profile $PROFILE iam create-access-key --user-name ${PREFIX}_heating_publisher > ../keys/publisher_key.json
     
     cat > new-read_temp_config.ini  <<EOF
 [Input]	
@@ -56,11 +57,14 @@ LogLevel=info
 
 [AWS]
 region=$AWSRegion
-key_file=/home/$ReaderUser/releases/prod/access_key.json
-bucket=$PREFIX.heating.s3
+key_file=/home/$ReaderUser/releases/prod/publisher_key.json
+bucket=$BucketName
 path=observations
 prefix=obs
 EOF
 
-    mv -vf new-read_temp_config.ini ../reader
+    mv -vf new-read_temp_config.ini ../reader/read_temp_config.ini
 fi
+
+aws --profile $PROFILE s3 cp receiver_config.json s3://$BucketName/lambda_internal/receiver_config.json
+

@@ -19,6 +19,7 @@
 import argparse
 import datetime
 import json
+import os
 import sys
 import time
 import urllib.parse
@@ -187,7 +188,7 @@ class ExecutionEnvironment():
 
 def init_lambda():
     xenv = ExecutionEnvironment()
-    xenv.s3 = boto.client('s3')
+    xenv.s3 = boto3.client('s3')
     xenv.lambda_bucket = os.getenv('CONFIG_BUCKET')
     xenv.get_sns_client = lambda: boto.client('sns')
     return xenv

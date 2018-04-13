@@ -4,7 +4,7 @@ import sys
 
 import boto3
 
-Funcname='ktsr42_lambda_test2'
+Funcname='ktsr42_heating_lambda'
 Profile="root"
 
 def print_aws_timestamp(awsts):
