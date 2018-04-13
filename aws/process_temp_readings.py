@@ -94,7 +94,7 @@ def send_alert(xenv, msg):
     if now > xenv.last_status.last_alert_ts + 3600 * xenv.config.repeat_alert_hours:
         finalmsg = datetime.datetime.fromtimestamp(now).strftime("%Y.%m.%d %H:%M:%S UTC: ") + msg
         print("Sending alert '{}'".format(finalmsg))
-        xenv.get_sns_client().publish(Phonenumber=xenv.config.phonenumber, Message=finalmsg)
+        xenv.get_sns_client().publish(PhoneNumber=xenv.config.phonenumber, Message=finalmsg)
     else:
         print("Not sending alert " + msg)
     
@@ -190,7 +190,7 @@ def init_lambda():
     xenv = ExecutionEnvironment()
     xenv.s3 = boto3.client('s3')
     xenv.lambda_bucket = os.getenv('CONFIG_BUCKET')
-    xenv.get_sns_client = lambda: boto.client('sns')
+    xenv.get_sns_client = lambda: boto3.client('sns')
     return xenv
     
 
