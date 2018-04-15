@@ -11,8 +11,8 @@ PROFILE=root
 
 Stackname="${PREFIX}MonitorHeating"
 
-Sensorfile=/home/klaas/Projects/heating/testdata/sensor
 ReaderUser=tsensor
+Sensorfile=/home/$ReaderUser/sensorfile
 AWSRegion=us-east-1
 BucketName=$PREFIX.heating.s3
 
