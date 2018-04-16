@@ -56,6 +56,12 @@ Resources:
       Environment:
         Variables:
           CONFIG_BUCKET: !Ref BucketName
+  BucketWatcherLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "BucketWatcher"
+    Properties:
+      RetentionInDays: 7
+      LogGroupName:  !Join ["", ["/aws/lambda/", !Ref BucketWatcher]]
   StatusCheckEvent:
     Type: AWS::Events::Rule
     Properties:
