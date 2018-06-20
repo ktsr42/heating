@@ -1,21 +1,3 @@
-# status:
-# - last message timestamp
-# - last message temperature
-# - last alert timestamp
-
-# read status
-# if event == s3 put object
-#   parse message
-#   write consolidated data (allreadings/YYYYMMDD.json)
-#   if most recent temperature < config['min_temp'] and last_alert_timestamp - now > config['min_alert_gap']
-#     send_temperature_alert
-# if event = scheduled event
-#   if last message timestamp - now > config['max_message_gap']:
-#     send_no_readings_alert
-# write status file
-
-# catch exceptions and send alert
-
 import argparse
 import datetime
 import json

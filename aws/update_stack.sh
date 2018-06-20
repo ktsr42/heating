@@ -2,22 +2,10 @@
 
 set -eux
 
-PREFIX=ktsr42
-ZIPFILE=process_temp_readings.zip
-CODE_BUCKET=ktsr42.s3.code
-CODE_BUCKET_PATH=code
-
-PROFILE=root
-
-Stackname="${PREFIX}MonitorHeating"
-
-ReaderUser=tsensor
-Sensorfile=/home/$ReaderUser/sensorfile
-AWSRegion=us-east-1
-BucketName=$PREFIX.heating.s3
+source settings.sh
 
 # make sure the $ZIPFILE is up to date
-make
+make $ZIPFILE
 
 # Put the zipfile into S3
 aws --profile $PROFILE s3 cp $ZIPFILE s3://$CODE_BUCKET/$CODE_BUCKET_PATH/$ZIPFILE
