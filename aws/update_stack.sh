@@ -4,6 +4,8 @@ set -eux
 
 source settings.sh
 
+ZIPFILE=process_temp_readings.zip
+
 # make sure the $ZIPFILE is up to date
 make $ZIPFILE
 
@@ -54,5 +56,15 @@ EOF
     mv -vf new-read_temp_config.ini ../reader/read_temp_config.ini
 fi
 
+cat >> new-receiver_config.json <<EOF
+{
+    "minimum_temperature":$MinimumTemp,
+    "repeat_alert_hours":$RepeatAlertHours,
+    "phonenumber":$Phonenumber,
+    "max_delay":$MaxDelay
+}
+EOF
+
+mv new-receiver_config.json receiver_config.json
 aws --profile $PROFILE s3 cp receiver_config.json s3://$BucketName/lambda_internal/receiver_config.json
 
