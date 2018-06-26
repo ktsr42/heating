@@ -19,7 +19,7 @@ dist-reader: temp_reader-$(REL).tar.gz
 temp_reader-$(REL).tar.gz: reader/*
 	rm -rf .dist
 	mkdir .dist
-	rsync -rv --exclude "*~" --exclude __pycache__ --exclude .git reader/read_temp.py reader/crontab keys/publisher_key.json reader/read_temp_config.ini reader/sensor.dummy .dist/
+	rsync -rv --exclude "*~" --exclude __pycache__ --exclude .git reader/read_temp.py reader/crontab keys/publisher_key.json reader/read_temp_config.ini reader/sensor.dummy reader/run.sh Pipfile Pipfile.lock .dist/
 	tar cz --transform="s/\.dist/temp_reader-$(REL)/" -f $@ .dist
 
 dist-lambda:
