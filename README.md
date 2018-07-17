@@ -142,14 +142,22 @@ Create a symbolic link in the home directory of tsensor to point to
 the actual reading file in /proc. For testing purposes you can
 point that link instead at `releases/prod/sensor.dummy`.
 
+Install the required Python packages by running
+
+    $ cd ~/releases/prod
+    $ pipenv sync
+
 Execute the temperature reader once for testing purposes:
 
-    /usr/bin/python3 ~/releases/prod/read_temp.py ~/releases/prod/read_temp_config.ini
+    ./run.sh
 
 to ensure the reader is working. It should not produce any output. You can verify
 that the reader has pushed a new file to the S3 bucket used for capturing by executing:
 
     aws s3 ls gs://<your bucket from settings.sh>/observations
+
+The reader writes its logfile to ~/logs/reader_log. Please review this file if
+anything seems to be off.
 
 If everything is good, start the regular temperature monitoring by putting the script into
 cron:
