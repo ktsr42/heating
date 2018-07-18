@@ -7,7 +7,27 @@ sensor using AWS (Amazon Web Services). All code is written in
 Python. The temperature sensor is attached to a Raspberry PI. It sends
 alerts via SMS if a reading is below a given threshold.
 
-## Overview
+## How it works
+
+Whenever it is run, the temperature reader script on the RPI will take
+the current reading of the sensor, store it locally and then also
+store it in a file in the S3 bucket created for this purpose. The
+upload to the S3 bucket triggers the execution of
+aws/process_temp_readings.py as an AWS lambda function. This function
+does all the heavy lifting, i.e. it consolidates the raw readings into
+json files by date and writes them to a separate directory in the AWS
+bucket.  It also checks if the latest reading is not too old or if it
+is below the set threshold and sends alert messages to the configured
+SMS number.
+
+The same AWS lambda function is also invoked from AWS on a schedule so
+that it can detect that the RPI has stopped sending updates and alert
+accordingly.
+
+At this point the code only supports monitoring one temperature
+sensor.
+
+## Background
 
 I created this project as a way to monitor the temperature of a
 heating pipe in our house that can freeze up during the winter if we
@@ -18,9 +38,6 @@ alerts that are considered relevant. Most importantly the Lambda
 function will send alerts if the measured temperature drops below a
 configured threshold. However, it will also send alerts if no updates
 have been received for some time (default is 4 hours).
-
-At this point the code only supports monitoring one temperature
-sensor.
 
 ## Requirements
  
@@ -68,9 +85,9 @@ reading code. I called it 'tsensor': `sudo adduser tsensor`.
 You need to install the following items:
 
 * Python 3: apt-get install python3
-* Pipenv: sudo pip3 install pipenv
-* jq:     sudo apt-get install jq
-* make:   sudo apt-get install make
+* Pipenv:   sudo pip3 install pipenv
+* jq:       sudo apt-get install jq
+* make:     sudo apt-get install make
 * check out github source (or pull release) *FIXME*
 
 After unpacking the package, please change into the top level
@@ -81,8 +98,7 @@ If you have not already done so, please configure the AWS cli as
 described here:
 https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
 Note that it is not recommended to use the AWS root account for actual
-work, as described here:
-https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#lock-away-credentials.
+work. The reasoning behind that are outlined here: https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#lock-away-credentials.
 Instead create a separate Admin account and use its credentials for
 the AWS cli configuration.
 
@@ -118,11 +134,13 @@ reader, which is why it has to be run first.
 
 ### Raspberry PI Deployment
 
-If you are stil in the `aws` subdirectory enter `cd ..` to switch back to the distribution
-root. Run `make dist-reader` from the root directory
+If you are stil in the `aws` subdirectory enter `cd ..` to switch back
+to the distribution root. Run `make dist-reader` from the root
+directory
 
-This will create a `temp_reader-<REL>.tar.gz` archive file in the root directory. Copy this file
-to the Raspberry PI and unpack it into a `releases` subdirectory:
+This will create a `temp_reader-<REL>.tar.gz` archive file in the root
+directory. Copy this file to the Raspberry PI and unpack it into a
+`releases` subdirectory:
 
     $ whoami
     tsensor
@@ -145,22 +163,23 @@ point that link instead at `releases/prod/sensor.dummy`.
 Install the required Python packages by running
 
     $ cd ~/releases/prod
-    $ pipenv sync
+    $ pipenv install
 
 Execute the temperature reader once for testing purposes:
 
     ./run.sh
 
-to ensure the reader is working. It should not produce any output. You can verify
-that the reader has pushed a new file to the S3 bucket used for capturing by executing:
+to ensure the reader is working. It should not produce any output. You
+can verify that the reader has pushed a new file to the S3 bucket used
+for capturing by executing:
 
     aws s3 ls gs://<your bucket from settings.sh>/observations
 
-The reader writes its logfile to ~/logs/reader_log. Please review this file if
-anything seems to be off.
+The reader writes its logfile to ~/logs/reader_log. Please review this
+file if anything seems to be off.
 
-If everything is good, start the regular temperature monitoring by putting the script into
-cron:
+If everything is good, start the regular temperature monitoring by
+putting the script into cron:
 
     crontab releases/prod/crontab
 
@@ -169,19 +188,3 @@ edit the crontab file (see `man 5 crontab`) if you would like to
 change the frequency. Note that above a certain threshold AWS starts
 to charge for traffic to S3.
 
-## How it works
-
-Whenever it is run, the temperature reader script on the RPI will take
-the current reading of the sensor, store it locally and then also
-store it in a file in the S3 bucket created for this purpose. The
-upload to the S3 bucket triggers the execution of
-aws/process_temp_readings.py as an AWS lambda function. This function
-does all the heavy lifting, i.e. it consolidates the raw readings into
-json files by date and writes them to a separate directory in the AWS
-bucket.  It also checks if the latest reading is not too old or if it
-is below the set threshold and sends alert messages to the configured
-SMS number.
-
-The same AWS lambda function is also invoked from AWS on a schedule so
-that it can detect that the RPI has stopped sending updates and alert
-accordingly.
