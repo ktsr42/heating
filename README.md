@@ -34,7 +34,7 @@ If you do not have an AWS account, you will have to create one. Open http://aws.
 
 On the Raspberry PI, you need to install the following items:
 
-* Python 3: `sudo apt-get install python3`
+* Python 3: `sudo apt-get install python3 python3-pip`
 * pipenv:   `sudo pip3 install pipenv`
 
 You should also create a dedicated user that will run the temperature reading code. I called it 'tsensor': `sudo adduser tsensor`.
@@ -43,7 +43,7 @@ You should also create a dedicated user that will run the temperature reading co
 
 You need to install the following items:
 
-* Python 3: apt-get install python3
+* Python 3: apt-get install python3 python3-pip
 * Pipenv:   sudo pip3 install pipenv
 * jq:       sudo apt-get install jq
 * make:     sudo apt-get install make

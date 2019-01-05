@@ -1,8 +1,8 @@
 PROFILE=default               # set the AWS cli profile that you want to use for creating the required AWS resources
 
 PREFIX=                       # a prefix used for all aws resources that will be used for the deployment
-CODE_BUCKET=                  # S3 bucket where the zipfile with the lambda code will be deposited
-CODE_BUCKET_PATH=             # prefix (path) of the lambda code zipfile
+CODE_BUCKET=                  # S3 bucket where the zipfile with the lambda code will be deposited. This must be an existing bucket
+CODE_BUCKET_PATH=             # prefix (path) of the lambda code zipfile in the above bucket
 
 Stackname="${PREFIX}MonitorHeating"   # This will be the AWS Cloudformation stack name, change it if you like
 
