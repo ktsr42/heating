@@ -90,9 +90,14 @@ Install the required Python packages by running
     $ cd ~/releases/prod
     $ pipenv install
 
+Create two directories required by the reader script:
+
+    $ cd
+    $ mkdir -p data logs
+    
 Execute the temperature reader once for testing purposes:
 
-    ./run.sh
+    $ ./releases/prod/run.sh
 
 to ensure the reader is working. It should not produce any output. You can verify that the reader has pushed a new file to the S3 bucket used for capturing by executing:
 
