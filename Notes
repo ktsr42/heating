@@ -1,3 +1,13 @@
+Redesign to reduce S3 traffic below free tier limit
+
+* lambda is invoked directly from reader
+* reader manages historic data files
+* historic data is only updated every 30 mins
+
+
+
+Original Design
+~~~~~~~~~~~~~~~
 Raspberry PI measures every n minutes, uploads to S3 bucket
 
 * configure time synchronization on PI
