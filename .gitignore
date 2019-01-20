@@ -7,3 +7,6 @@ __pycache__
 trash
 testdata
 .pytest_cache
+README.html
+aws/receiver_config.json
+reader/read_temp_config.ini

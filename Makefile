@@ -32,3 +32,6 @@ temp_monitor-$(REL).tar.gz:
 	mkdir .dist
 	rsync -rv --exclude "*~" --exclude __pycache__ --exclude .git --exclude "*.tar.gz"  . .dist/
 	tar cz --transform="s/\.dist/temp_reader-$(REL)/" -f $@ .dist
+
+README.html: README.md
+	pandoc -s -o README.html -f markdown_github -t html README.md
